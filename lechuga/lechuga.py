@@ -48,7 +48,8 @@ class Lechuga:
   def replace_type(cls, t):
     d = {
       'casas de cambio': 'oficial',
-      'informal': 'blue'
+      'informal': 'blue',
+      'inforrmal': 'blue',
     }
     if t in d.keys():
       t = d[t]
