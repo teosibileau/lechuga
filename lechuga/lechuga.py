@@ -1,6 +1,6 @@
 from datetime import datetime
 import simplejson as json
-import re, os, copy, csv
+import re, os, copy, csv, logging
 import requests, requests_cache
 from colorama import init, Fore, Back, Style
 from tabulate import tabulate
@@ -146,4 +146,5 @@ def run(n, save, types, json, output):
     l.save_as_json(output, types)
 
 if __name__ == '__main__':
+  logging.captureWarnings(True)
   run()
