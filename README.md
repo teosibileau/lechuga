@@ -2,7 +2,7 @@
 
 :leaves:
 
-"Lechuga" (lettuce) is a commonly used financian slang term in Argentina to refer to US Dollars. 
+"Lechuga" (lettuce) is a commonly used slang financial term in Argentina to refer to US Dollars. 
 
 ## Installation
 
