@@ -32,8 +32,8 @@ class Lechuga:
       r = r.json()
       self.p.append({
         'date': r['date'],
-        'buy': r['rates']['ARS'] / r['rates']['USD'],
-        'sell': r['rates']['ARS'] / r['rates']['USD'],
+        'usd': r['rates']['ARS'] / r['rates']['USD'],
+        'euro': r['rates']['ARS'],
         }
       )
       last = datetime.strptime(r['date'], '%Y-%m-%d') - timedelta(days=1)
@@ -43,10 +43,10 @@ class Lechuga:
     print('')
     h = [
       Back.YELLOW + Fore.BLACK + ' Fecha ' + Style.RESET_ALL,
-      Back.RED + Fore.WHITE + ' Compra ' + Style.RESET_ALL,
-      Back.BLUE + Fore.WHITE + ' Venta ' + Style.RESET_ALL, 
+      Back.GREEN + Fore.WHITE + ' USD ' + Style.RESET_ALL,
+      Back.BLUE + Fore.WHITE + ' EURO ' + Style.RESET_ALL,
     ]
-    o = [[i['date'], "%.2f" % i['buy'], "%.2f" % i['sell']] for i in reversed(self.p)]
+    o = [[i['date'], "%.2f" % i['usd'], "%.2f" % i['euro']] for i in reversed(self.p)]
     print(tabulate(o, headers=h))
     print('')
 
