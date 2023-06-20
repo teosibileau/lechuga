@@ -1,6 +1,0 @@
-ahoyapi: v2
-commands:
-  freeze:
-    cmd: |
-      pipenv lock --requirements > requirements.txt
-      pipenv lock --dev --requirements > requirements.dev.txt
