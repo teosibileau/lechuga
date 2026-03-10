@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from datetime import datetime, timedelta
 import simplejson as json
 import re, os, copy, csv, logging

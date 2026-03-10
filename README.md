@@ -9,8 +9,14 @@
 Requirements:
 
 + A [fixer.io](https://fixer.io/quickstart) free account
-+ python 3.6+
-+ pip
++ python 3.7+
++ [Poetry](https://python-poetry.org/)
+
+```bash
+$ poetry add git+https://github.com/drkloc/lechuga.git
+```
+
+Or install directly with pip:
 
 ```bash
 $ pip install git+https://github.com/drkloc/lechuga.git

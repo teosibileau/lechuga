@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "lechuga"
+version = "0.3"
+description = "retrieves AR$ rates from fixer.io API"
+authors = ["Teofilo Sibileau <teo.sibileau@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "lechuga"}]
+
+[tool.poetry.scripts]
+lechuga = "lechuga.lechuga:run"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+click = "*"
+requests = "*"
+requests-cache = "*"
+colorama = "*"
+tabulate = "*"
+simplejson = "*"
+python-dotenv = "^1.2.2"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "*"
+ipdb = "^0.13.13"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
