@@ -9,17 +9,18 @@
 Requirements:
 
 + A [fixer.io](https://fixer.io/quickstart) free account
-+ python 3.7+
-+ [Poetry](https://python-poetry.org/)
++ Python 3.10+
+
+Install with [pipx](https://pipx.pypa.io/) (recommended for CLI tools):
 
 ```bash
-$ poetry add git+https://github.com/drkloc/lechuga.git
+$ pipx install lechuga
 ```
 
-Or install directly with pip:
+Or install with pip:
 
 ```bash
-$ pip install git+https://github.com/drkloc/lechuga.git
+$ pip install lechuga
 ```
 
 Setup an environment variable with the Fixer IO API access key:
