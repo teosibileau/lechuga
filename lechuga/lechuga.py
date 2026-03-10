@@ -1,23 +1,39 @@
 import click
-from dotenv import load_dotenv
-
-
+import functools
 from datetime import datetime, timedelta
 import os
 import logging
 import requests
-import requests_cache
-from colorama import init, Fore, Back, Style
+from colorama import Fore, Back, Style
 from tabulate import tabulate
 
-load_dotenv()
+from lechuga.config import get_db_connection
+from lechuga.models import Rate
 
-SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-init(autoreset=True)
-requests_cache.install_cache(
-    "%s/lechuga" % SCRIPT_ROOT, backend="sqlite", expire_after=60
-)
+def cached_rate(fn):
+    @functools.wraps(fn)
+    def wrapper(self, date_str):
+        # Check cache for known dates
+        if date_str != "latest":
+            row = self.db_conn.execute(
+                "SELECT date, usd, euro FROM rates WHERE date = ?", (date_str,)
+            ).fetchone()
+            if row:
+                return Rate(date=row[0], usd=row[1], euro=row[2])
+
+        # Cache miss — call the actual method
+        rate = fn(self, date_str)
+
+        # Store in cache
+        self.db_conn.execute(
+            "INSERT OR IGNORE INTO rates (date, usd, euro) VALUES (?, ?, ?)",
+            (rate.date, rate.usd, rate.euro),
+        )
+        self.db_conn.commit()
+        return rate
+
+    return wrapper
 
 
 class Lechuga:
@@ -27,28 +43,29 @@ class Lechuga:
             raise Exception("Please set the FIXERIOKEY environ variable")
         self.depth = depth
         self.p = []
+        self.db_conn = get_db_connection()
         self.refresh()
 
-    def refresh(self):
-        # Request data and remove first item.
+    @cached_rate
+    def fetch_rate(self, date_str):
         API = "http://data.fixer.io/api/%s?access_key=%s&format=1&symbols=USD,ARS"
+        uri = API % (date_str, self.api_key)
+        r = requests.get(uri)
+        r.raise_for_status()
+        r = r.json()
+        return Rate(
+            date=r["date"],
+            usd=r["rates"]["ARS"] / r["rates"]["USD"],
+            euro=r["rates"]["ARS"],
+        )
+
+    def refresh(self):
         last = False
         while self.depth:
-            uri = API % (
-                "latest" if not last else last.strftime("%Y-%m-%d"),
-                self.api_key,
-            )
-            r = requests.get(uri)
-            r.raise_for_status()
-            r = r.json()
-            self.p.append(
-                {
-                    "date": r["date"],
-                    "usd": r["rates"]["ARS"] / r["rates"]["USD"],
-                    "euro": r["rates"]["ARS"],
-                }
-            )
-            last = datetime.strptime(r["date"], "%Y-%m-%d") - timedelta(days=1)
+            date_str = "latest" if not last else last.strftime("%Y-%m-%d")
+            rate = self.fetch_rate(date_str)
+            self.p.append(rate.model_dump())
+            last = datetime.strptime(rate.date, "%Y-%m-%d") - timedelta(days=1)
             self.depth -= 1
 
     def print_it(self):

@@ -17,3 +17,13 @@ def _make_response(date, usd_rate, ars_rate):
 @pytest.fixture
 def mock_api_response():
     return _make_response
+
+
+@pytest.fixture
+def mock_db(tmp_path, monkeypatch):
+    """Patch get_db_connection to use a temp DB."""
+    db_path = str(tmp_path / "test.sqlite")
+    import lechuga.config as config
+
+    monkeypatch.setattr(config, "DB_PATH", db_path)
+    return db_path
