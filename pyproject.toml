@@ -19,10 +19,12 @@ colorama = "*"
 tabulate = "*"
 simplejson = "*"
 python-dotenv = "^1.2.2"
+pydantic = "^2.12.5"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "*"
 ipdb = "^0.13.13"
+pytest = "^9.0.2"
 
 [build-system]
 requires = ["poetry-core"]
