@@ -10,6 +10,7 @@ Requirements:
 
 + A [fixer.io](https://fixer.io/quickstart) free account
 + Python 3.10+
++ SQLite3
 
 Install with [pipx](https://pipx.pypa.io/) (recommended for CLI tools):
 
