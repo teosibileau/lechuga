@@ -3,7 +3,7 @@ from unittest.mock import patch, Mock
 
 import pytest
 
-from lechuga.lechuga import Lechuga
+from lechuga.lechuga import Lechuga, _trend
 
 TODAY = date.today().strftime("%Y-%m-%d")
 
@@ -83,3 +83,33 @@ class TestLechuga:
 
         with pytest.raises(HTTPError):
             Lechuga(depth=1)
+
+    @patch("lechuga.lechuga.requests.get")
+    def test_print_it_trend_emojis(
+        self, mock_get, mock_env, mock_db, mock_api_response, capsys
+    ):
+        mock_get.return_value = Mock()
+        mock_get.return_value.json = Mock(
+            side_effect=[
+                mock_api_response("2026-03-10", 1.08, 1200.0),
+                mock_api_response("2026-03-09", 1.08, 1190.0),
+                mock_api_response("2026-03-08", 1.08, 1100.0),
+            ]
+        )
+
+        client = Lechuga(depth=3)
+        client.print_it()
+        output = capsys.readouterr().out
+
+        # Row 1 (2026-03-08): oldest, no emoji
+        # Row 2 (2026-03-09): 1190/1100 = +8.18% euro → 🚀
+        assert "🚀" in output
+        # Row 3 (2026-03-10): 1200/1190 = +0.84% euro → 📈
+        assert "📈" in output
+
+    def test_trend_helper(self):
+        assert _trend(104, 100) == " 🚀"  # +4% > 3%
+        assert _trend(102, 100) == " 📈"  # +2% ≤ 3%
+        assert _trend(100, 100) == " ➡️"  # no change
+        assert _trend(98, 100) == " 📉"  # -2% ≥ -3%
+        assert _trend(96, 100) == " 💥"  # -4% < -3%

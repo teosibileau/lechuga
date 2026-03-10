@@ -10,6 +10,19 @@ from lechuga.config import get_db_connection
 from lechuga.models import Rate, cached_rate
 
 
+def _trend(current, previous):
+    pct = (current - previous) / previous * 100
+    if pct > 3:
+        return " 🚀"
+    if pct > 0:
+        return " 📈"
+    if pct < -3:
+        return " 💥"
+    if pct < 0:
+        return " 📉"
+    return " ➡️"
+
+
 class Lechuga:
     def __init__(self, depth=1):
         self.api_key = os.environ.get("FIXERIOKEY", False)
@@ -53,9 +66,15 @@ class Lechuga:
             Back.GREEN + Fore.WHITE + " USD " + Style.RESET_ALL,
             Back.BLUE + Fore.WHITE + " EURO " + Style.RESET_ALL,
         ]
-        o = [
-            [i["date"], "%.2f" % i["usd"], "%.2f" % i["euro"]] for i in reversed(self.p)
-        ]
+        rows = list(reversed(self.p))
+        o = []
+        for idx, i in enumerate(rows):
+            usd_str = "%.2f" % i["usd"]
+            euro_str = "%.2f" % i["euro"]
+            if idx > 0:
+                usd_str += _trend(i["usd"], rows[idx - 1]["usd"])
+                euro_str += _trend(i["euro"], rows[idx - 1]["euro"])
+            o.append([i["date"], usd_str, euro_str])
         print(tabulate(o, headers=h))
         print("")
 
