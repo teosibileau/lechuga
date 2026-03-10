@@ -1,6 +1,5 @@
 import click
-import functools
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import os
 import logging
 import requests
@@ -8,32 +7,7 @@ from colorama import Fore, Back, Style
 from tabulate import tabulate
 
 from lechuga.config import get_db_connection
-from lechuga.models import Rate
-
-
-def cached_rate(fn):
-    @functools.wraps(fn)
-    def wrapper(self, date_str):
-        # Check cache for known dates
-        if date_str != "latest":
-            row = self.db_conn.execute(
-                "SELECT date, usd, euro FROM rates WHERE date = ?", (date_str,)
-            ).fetchone()
-            if row:
-                return Rate(date=row[0], usd=row[1], euro=row[2])
-
-        # Cache miss — call the actual method
-        rate = fn(self, date_str)
-
-        # Store in cache
-        self.db_conn.execute(
-            "INSERT OR IGNORE INTO rates (date, usd, euro) VALUES (?, ?, ?)",
-            (rate.date, rate.usd, rate.euro),
-        )
-        self.db_conn.commit()
-        return rate
-
-    return wrapper
+from lechuga.models import Rate, cached_rate
 
 
 class Lechuga:
@@ -62,7 +36,11 @@ class Lechuga:
     def refresh(self):
         last = False
         while self.depth:
-            date_str = "latest" if not last else last.strftime("%Y-%m-%d")
+            date_str = (
+                date.today().strftime("%Y-%m-%d")
+                if not last
+                else last.strftime("%Y-%m-%d")
+            )
             rate = self.fetch_rate(date_str)
             self.p.append(rate.model_dump())
             last = datetime.strptime(rate.date, "%Y-%m-%d") - timedelta(days=1)
