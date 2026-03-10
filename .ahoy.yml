@@ -1,6 +1,11 @@
 ahoyapi: v2
 commands:
-  freeze:
+  config:
     cmd: |
-      pipenv lock --requirements > requirements.txt
-      pipenv lock --dev --requirements > requirements.dev.txt
+      cp ../master/.env ./
+      cp ../master/lechuga/lechuga.sqlite ./lechuga/
+
+  capture:
+    cmd: |
+      cp .env ../master/
+      cp lechuga/lechuga.sqlite ../master/lechuga/
