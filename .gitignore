@@ -44,3 +44,6 @@ storage
 ##########
 src/
 src/*
+
+# Environment
+.env
