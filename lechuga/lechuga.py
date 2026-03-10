@@ -39,6 +39,7 @@ class Lechuga:
                 self.api_key,
             )
             r = requests.get(uri)
+            r.raise_for_status()
             r = r.json()
             self.p.append(
                 {

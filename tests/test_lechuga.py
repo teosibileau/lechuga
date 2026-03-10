@@ -67,3 +67,14 @@ class TestLechuga:
 
         mock_get.assert_not_called()
         assert client.p == []
+
+    @patch("lechuga.lechuga.requests.get")
+    def test_raise_for_status(self, mock_get, mock_env):
+        from requests.exceptions import HTTPError
+
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = HTTPError("500 Server Error")
+        mock_get.return_value = mock_response
+
+        with pytest.raises(HTTPError):
+            Lechuga(depth=1)
