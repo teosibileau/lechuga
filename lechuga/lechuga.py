@@ -3,11 +3,21 @@ from datetime import date, datetime, timedelta
 import os
 import logging
 import requests
+from requests.exceptions import HTTPError
 from colorama import Fore, Back, Style
 from tabulate import tabulate
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 from lechuga.config import get_db_connection
 from lechuga.models import Rate, cached_rate
+
+
+def _is_retryable(exception):
+    return (
+        isinstance(exception, HTTPError)
+        and exception.response is not None
+        and exception.response.status_code == 429
+    )
 
 
 def _trend(current, previous):
@@ -34,6 +44,11 @@ class Lechuga:
         self.refresh()
 
     @cached_rate
+    @retry(
+        retry=retry_if_exception(_is_retryable),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        stop=stop_after_attempt(3),
+    )
     def fetch_rate(self, date_str):
         API = "http://data.fixer.io/api/%s?access_key=%s&format=1&symbols=USD,ARS"
         uri = API % (date_str, self.api_key)

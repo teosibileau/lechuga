@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import patch, Mock
 
 import pytest
+from requests.exceptions import HTTPError
 
 from lechuga.lechuga import Lechuga, _trend
 
@@ -113,3 +114,40 @@ class TestLechuga:
         assert _trend(100, 100) == " ➡️"  # no change
         assert _trend(98, 100) == " 📉"  # -2% ≥ -3%
         assert _trend(96, 100) == " 💥"  # -4% < -3%
+
+    @patch("lechuga.lechuga.requests.get")
+    def test_retries_on_429(self, mock_get, mock_env, mock_db, mock_api_response):
+        mock_429 = Mock()
+        mock_429.status_code = 429
+        error_429 = HTTPError("429 Too Many Requests", response=mock_429)
+
+        success_response = Mock()
+        success_response.raise_for_status = Mock()
+        success_response.json.return_value = mock_api_response(TODAY, 1.08, 1200.0)
+
+        fail_response = Mock()
+        fail_response.raise_for_status.side_effect = error_429
+
+        mock_get.side_effect = [fail_response, fail_response, success_response]
+
+        client = Lechuga(depth=1)
+
+        assert mock_get.call_count == 3
+        assert len(client.p) == 1
+        assert client.p[0]["date"] == TODAY
+
+    @patch("lechuga.lechuga.requests.get")
+    def test_no_retry_on_500(self, mock_get, mock_env, mock_db):
+        mock_500 = Mock()
+        mock_500.status_code = 500
+        error_500 = HTTPError("500 Server Error", response=mock_500)
+
+        fail_response = Mock()
+        fail_response.raise_for_status.side_effect = error_500
+
+        mock_get.return_value = fail_response
+
+        with pytest.raises(HTTPError):
+            Lechuga(depth=1)
+
+        assert mock_get.call_count == 1
